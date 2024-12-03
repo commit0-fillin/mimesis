@@ -42,7 +42,10 @@ class Numeric(BaseProvider):
         :param accumulator: Accumulator (used to create associative incrementation).
         :return: Integer.
         """
-        pass
+        if accumulator is None:
+            accumulator = self.__default_accumulator_value
+        self.__increment_dict[accumulator] += 1
+        return self.__increment_dict[accumulator]
 
     def float_number(self, start: float=-1000.0, end: float=1000.0, precision: int=15) -> float:
         """Generates a random float number in range [start, end].
@@ -53,7 +56,7 @@ class Numeric(BaseProvider):
             precision in decimal digits, default is 15.
         :return: Float.
         """
-        pass
+        return round(self.random.uniform(start, end), precision)
 
     def floats(self, start: float=0, end: float=1, n: int=10, precision: int=15) -> list[float]:
         """Generates a list of random float numbers.
@@ -65,7 +68,7 @@ class Numeric(BaseProvider):
             precision in decimal digits, default is 15.
         :return: The list of floating-point numbers.
         """
-        pass
+        return [self.float_number(start, end, precision) for _ in range(n)]
 
     def integer_number(self, start: int=-1000, end: int=1000) -> int:
         """Generates a random integer from start to end.
@@ -74,7 +77,7 @@ class Numeric(BaseProvider):
         :param end: End range.
         :return: Integer.
         """
-        pass
+        return self.random.randint(start, end)
 
     def integers(self, start: int=0, end: int=10, n: int=10) -> list[int]:
         """Generates a list of random integers.
@@ -87,7 +90,7 @@ class Numeric(BaseProvider):
         :Example:
             [-20, -19, -18, -17]
         """
-        pass
+        return [self.integer_number(start, end) for _ in range(n)]
 
     def complex_number(self, start_real: float=0.0, end_real: float=1.0, start_imag: float=0.0, end_imag: float=1.0, precision_real: int=15, precision_imag: int=15) -> complex:
         """Generates a random complex number.
@@ -102,7 +105,9 @@ class Numeric(BaseProvider):
             number to a given precision.
         :return: Complex numbers.
         """
-        pass
+        real = self.float_number(start_real, end_real, precision_real)
+        imag = self.float_number(start_imag, end_imag, precision_imag)
+        return complex(real, imag)
 
     def complexes(self, start_real: float=0, end_real: float=1, start_imag: float=0, end_imag: float=1, precision_real: int=15, precision_imag: int=15, n: int=10) -> list[complex]:
         """Generates a list of random complex numbers.
@@ -118,7 +123,7 @@ class Numeric(BaseProvider):
         :param n: Length of the list.
         :return: A list of random complex numbers.
         """
-        pass
+        return [self.complex_number(start_real, end_real, start_imag, end_imag, precision_real, precision_imag) for _ in range(n)]
 
     def decimal_number(self, start: float=-1000.0, end: float=1000.0) -> Decimal:
         """Generates a random decimal number.
@@ -127,7 +132,7 @@ class Numeric(BaseProvider):
         :param end: End range.
         :return: :py:class:`decimal.Decimal` object.
         """
-        pass
+        return Decimal(str(self.float_number(start, end)))
 
     def decimals(self, start: float=0.0, end: float=1000.0, n: int=10) -> list[Decimal]:
         """Generates a list of decimal numbers.
@@ -137,7 +142,7 @@ class Numeric(BaseProvider):
         :param n: Length of the list.
         :return: A list of :py:class:`decimal.Decimal` objects.
         """
-        pass
+        return [self.decimal_number(start, end) for _ in range(n)]
 
     def matrix(self, m: int=10, n: int=10, num_type: NumType=NumType.FLOAT, **kwargs: t.Any) -> Matrix:
         """Generates m x n matrix with a random numbers.
@@ -151,4 +156,6 @@ class Numeric(BaseProvider):
         :param kwargs: Other method-specific arguments.
         :return: A matrix of random numbers.
         """
-        pass
+        num_type = self.validate_enum(num_type, NumType)
+        method = getattr(self, num_type.value)
+        return [[method(**kwargs) for _ in range(n)] for _ in range(m)]
