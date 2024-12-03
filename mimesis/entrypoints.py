@@ -8,4 +8,4 @@ def pytest_randomly_reseed(seed: int) -> None:
     It sets the global seed for every provider / field.
     You can still modify the seed with `.reseed()` calls if needed.
     """
-    pass
+    random.seed(seed)
