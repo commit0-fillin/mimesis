@@ -52,7 +52,11 @@ class BaseProvider:
         :param seed: Seed for random.
             When set to `None` the current system time is used.
         """
-        pass
+        if seed is not MissingSeed:
+            self.seed = seed
+            self.random.seed(seed)
+        else:
+            self.random.seed()
 
     def validate_enum(self, item: t.Any, enum: t.Any) -> t.Any:
         """Validates various enum objects that are used as arguments for methods.
@@ -62,7 +66,13 @@ class BaseProvider:
         :return: Value of item.
         :raises NonEnumerableError: If enums has not such an item.
         """
-        pass
+        if item is None:
+            return self.random.choice_enum_item(enum)
+        if isinstance(item, enum):
+            return item
+        if item in enum.__members__:
+            return enum[item]
+        raise NonEnumerableError(enum)
 
     def _read_global_file(self, file_name: str) -> t.Any:
         """Reads JSON file and return dict.
@@ -73,11 +83,16 @@ class BaseProvider:
         :raises FileNotFoundError: If the file was not found.
         :return: JSON data.
         """
-        pass
+        file_path = DATADIR.joinpath('global', file_name)
+        try:
+            with open(file_path, encoding='utf8') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"File '{file_path}' not found")
 
     def _has_seed(self) -> bool:
         """Internal API to check if seed is set."""
-        pass
+        return self.seed is not MissingSeed
 
     def __str__(self) -> str:
         """Human-readable representation of locale."""
@@ -104,7 +119,7 @@ class BaseDataProvider(BaseProvider):
         :raises UnsupportedLocale: When locale not supported.
         :return: Nothing.
         """
-        pass
+        self.locale = validate_locale(locale)
 
     def _extract(self, keys: list[str], default: t.Any=None) -> t.Any:
         """Extracts nested values from JSON file by list of keys.
@@ -113,7 +128,10 @@ class BaseDataProvider(BaseProvider):
         :param default: Default value.
         :return: Data.
         """
-        pass
+        try:
+            return reduce(operator.getitem, keys, self._dataset)
+        except (KeyError, TypeError):
+            return default
 
     def _update_dict(self, initial: JSON, other: JSON) -> JSON:
         """Recursively updates a dictionary.
@@ -122,7 +140,12 @@ class BaseDataProvider(BaseProvider):
         :param other: Dict to update from.
         :return: Updated dict.
         """
-        pass
+        for key, value in other.items():
+            if isinstance(value, dict):
+                initial[key] = self._update_dict(initial.get(key, {}), value)
+            else:
+                initial[key] = value
+        return initial
 
     def _load_dataset(self) -> None:
         """Loads the content from the JSON dataset.
@@ -130,7 +153,13 @@ class BaseDataProvider(BaseProvider):
         :return: The content of the file.
         :raises UnsupportedLocale: Raises if locale is unsupported.
         """
-        pass
+        locale = self.locale.replace(LOCALE_SEP, '/')
+        file_path = DATADIR.joinpath(locale, f'{self.Meta.name}.json')
+        try:
+            with open(file_path, encoding='utf8') as f:
+                self._dataset = json.load(f)
+        except FileNotFoundError:
+            raise UnsupportedLocale(self.locale)
 
     def update_dataset(self, data: JSON) -> None:
         """Updates dataset merging a given dict into default data.
@@ -138,7 +167,7 @@ class BaseDataProvider(BaseProvider):
         This method may be useful when you need to override data
         for a given key in JSON file.
         """
-        pass
+        self._dataset = self._update_dict(self._dataset, data)
 
     def get_current_locale(self) -> str:
         """Returns current locale.
@@ -148,7 +177,7 @@ class BaseDataProvider(BaseProvider):
 
         :return: Current locale.
         """
-        pass
+        return getattr(self, 'locale', Locale.EN)
 
     def _override_locale(self, locale: Locale=Locale.DEFAULT) -> None:
         """Overrides current locale with passed and pull data for new locale.
@@ -156,7 +185,8 @@ class BaseDataProvider(BaseProvider):
         :param locale: Locale
         :return: Nothing.
         """
-        pass
+        self._setup_locale(locale)
+        self._load_dataset()
 
     @contextlib.contextmanager
     def override_locale(self, locale: Locale) -> t.Generator['BaseDataProvider', None, None]:
@@ -168,7 +198,14 @@ class BaseDataProvider(BaseProvider):
         :param locale: Locale.
         :return: Provider with overridden locale.
         """
-        pass
+        original_locale = self.locale
+        original_dataset = self._dataset.copy()
+        try:
+            self._override_locale(locale)
+            yield self
+        finally:
+            self.locale = original_locale
+            self._dataset = original_dataset
 
     def __str__(self) -> str:
         """Human-readable representation of locale."""
