@@ -10,7 +10,7 @@ class Choice(BaseProvider):
         name = 'choice'
 
     def choice(self, *args: t.Any, **kwargs: t.Any) -> t.Any:
-        """Choice random item form sequence.
+        """Choice random item from sequence.
 
         See https://github.com/lk-geimfari/mimesis/issues/619
 
@@ -18,7 +18,15 @@ class Choice(BaseProvider):
         :param kwargs: Keyword arguments.
         :return: Sequence or uncontained element randomly chosen from items.
         """
-        pass
+        if not args and not kwargs:
+            raise ValueError("At least one argument must be provided.")
+        
+        if args:
+            items = args[0] if len(args) == 1 else args
+        else:
+            items = list(kwargs.values())
+        
+        return self.random.choice(items)
 
     def __call__(self, items: t.Sequence[t.Any] | None, length: int=0, unique: bool=False) -> t.Sequence[t.Any] | t.Any:
         """Generates a randomly chosen sequence or bare element from a sequence.
