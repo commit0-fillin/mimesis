@@ -42,7 +42,14 @@ class FactoryField(declarations.BaseDeclaration):
         :param step: (factory.builder.BuildStep): The object holding the current build step.
         :param extra: Extra call-time added kwargs that would be passed to ``Field``.
         """
-        pass
+        locale = self.locale or self._default_locale
+        field = self._get_cached_instance(locale)
+        
+        kwargs = self.kwargs.copy()
+        if extra:
+            kwargs.update(extra)
+        
+        return field(self.field, **kwargs)
 
     @classmethod
     @contextmanager
@@ -52,7 +59,12 @@ class FactoryField(declarations.BaseDeclaration):
 
         Remember that implicit locales would not be overridden.
         """
-        pass
+        old_locale = cls._default_locale
+        cls._default_locale = locale
+        try:
+            yield
+        finally:
+            cls._default_locale = old_locale
 
     @classmethod
     def _get_cached_instance(cls, locale: Locale | None=None, field_handlers: RegisterableFieldHandlers | None=None) -> Field:
@@ -62,5 +74,14 @@ class FactoryField(declarations.BaseDeclaration):
         :param field_handlers: custom field handlers.
         :return: cached instance of Field.
         """
-        pass
+        locale = locale or cls._default_locale
+        cache_key = str(locale)
+        
+        if cache_key not in cls._cached_instances:
+            field = Field(locale=locale)
+            if field_handlers:
+                field.register_handlers(field_handlers)
+            cls._cached_instances[cache_key] = field
+        
+        return cls._cached_instances[cache_key]
 MimesisField = FactoryField
