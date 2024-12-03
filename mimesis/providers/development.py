@@ -22,7 +22,7 @@ class Development(BaseProvider):
         :Example:
             The BSD 3-Clause License.
         """
-        pass
+        return self.random.choice(LICENSES)
 
     def calver(self) -> str:
         """Generates a random calendar versioning string.
@@ -32,7 +32,10 @@ class Development(BaseProvider):
         :Example:
             2016.11.08
         """
-        pass
+        year = self.random.randint(2000, datetime.now().year)
+        month = self.random.randint(1, 12)
+        day = self.random.randint(1, 28)  # Using 28 to avoid invalid dates
+        return f"{year}.{month:02d}.{day:02d}"
 
     def version(self) -> str:
         """Generates a random semantic versioning string.
@@ -42,7 +45,10 @@ class Development(BaseProvider):
         :Example:
             0.2.1
         """
-        pass
+        major = self.random.randint(0, 10)
+        minor = self.random.randint(0, 99)
+        patch = self.random.randint(0, 99)
+        return f"{major}.{minor}.{patch}"
 
     def stage(self) -> str:
         """Generates a random stage of development.
@@ -52,7 +58,7 @@ class Development(BaseProvider):
         :Example:
             Alpha.
         """
-        pass
+        return self.random.choice(STAGES)
 
     def programming_language(self) -> str:
         """Generates a random programming language from the list.
@@ -62,7 +68,7 @@ class Development(BaseProvider):
         :Example:
             Erlang.
         """
-        pass
+        return self.random.choice(PROGRAMMING_LANGS)
 
     def os(self) -> str:
         """Generates a random operating system or distributive name.
@@ -72,14 +78,14 @@ class Development(BaseProvider):
         :Example:
             Gentoo
         """
-        pass
+        return self.random.choice(OS)
 
     def boolean(self) -> bool:
         """Generates a random boolean value.
 
         :return: True of False.
         """
-        pass
+        return self.random.choice([True, False])
 
     def system_quality_attribute(self) -> str:
         """Generates a random system quality attribute.
@@ -91,11 +97,11 @@ class Development(BaseProvider):
 
         :return: System quality attribute.
         """
-        pass
+        return self.random.choice(SYSTEM_QUALITY_ATTRIBUTES)
 
     def ility(self) -> str:
         """Generates a random system quality attribute.
 
         An alias for :meth:`~mimesis.Development.system_quality_attribute`.
         """
-        pass
+        return self.system_quality_attribute()
