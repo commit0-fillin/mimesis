@@ -27,7 +27,14 @@ class BinaryFile(BaseProvider):
         :param file_type: File extension.
         :return: File as a sequence of bytes.
         """
-        pass
+        file_type = self.validate_enum(file_type, VideoFile)
+        file_path = DATADIR.joinpath('video', f'sample.{file_type.value}')
+        
+        try:
+            with open(file_path, 'rb') as file:
+                return file.read()
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Sample video file '{file_path}' not found")
 
     def audio(self, *, file_type: AudioFile=AudioFile.MP3) -> bytes:
         """Generates an audio file of given format and returns it as bytes.
@@ -37,7 +44,14 @@ class BinaryFile(BaseProvider):
         :param file_type: File extension.
         :return: File as a sequence of bytes.
         """
-        pass
+        file_type = self.validate_enum(file_type, AudioFile)
+        file_path = DATADIR.joinpath('audio', f'sample.{file_type.value}')
+        
+        try:
+            with open(file_path, 'rb') as file:
+                return file.read()
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Sample audio file '{file_path}' not found")
 
     def document(self, *, file_type: DocumentFile=DocumentFile.PDF) -> bytes:
         """Generates a document of given format and returns it as bytes.
@@ -47,7 +61,14 @@ class BinaryFile(BaseProvider):
         :param file_type: File extension.
         :return: File as a sequence of bytes.
         """
-        pass
+        file_type = self.validate_enum(file_type, DocumentFile)
+        file_path = DATADIR.joinpath('document', f'sample.{file_type.value}')
+        
+        try:
+            with open(file_path, 'rb') as file:
+                return file.read()
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Sample document file '{file_path}' not found")
 
     def image(self, *, file_type: ImageFile=ImageFile.PNG) -> bytes:
         """Generates an image of given format and returns it as bytes.
@@ -57,7 +78,14 @@ class BinaryFile(BaseProvider):
         :param file_type: File extension.
         :return: File as a sequence of bytes.
         """
-        pass
+        file_type = self.validate_enum(file_type, ImageFile)
+        file_path = DATADIR.joinpath('image', f'sample.{file_type.value}')
+        
+        try:
+            with open(file_path, 'rb') as file:
+                return file.read()
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Sample image file '{file_path}' not found")
 
     def compressed(self, *, file_type: CompressedFile=CompressedFile.ZIP) -> bytes:
         """Generates a compressed file of given format and returns it as bytes.
@@ -67,4 +95,11 @@ class BinaryFile(BaseProvider):
         :param file_type: File extension.
         :return: File as a sequence of bytes.
         """
-        pass
+        file_type = self.validate_enum(file_type, CompressedFile)
+        file_path = DATADIR.joinpath('compressed', f'sample.{file_type.value}')
+        
+        try:
+            with open(file_path, 'rb') as file:
+                return file.read()
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Sample compressed file '{file_path}' not found")
