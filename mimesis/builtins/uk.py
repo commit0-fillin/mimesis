@@ -23,4 +23,14 @@ class UkraineSpecProvider(BaseDataProvider):
         :type gender: str or int
         :return: Patronymic name.
         """
-        pass
+        if gender is None:
+            gender = self.random.choice([Gender.MALE, Gender.FEMALE])
+
+        male_names = self.data['male_names']
+        
+        if gender == Gender.MALE:
+            return self.random.choice(male_names)[:-1] + 'ович'
+        elif gender == Gender.FEMALE:
+            return self.random.choice(male_names)[:-1] + 'івна'
+        else:
+            raise ValueError("Invalid gender. Use Gender.MALE or Gender.FEMALE.")
