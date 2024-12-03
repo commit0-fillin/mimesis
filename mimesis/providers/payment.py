@@ -34,7 +34,7 @@ class Payment(BaseProvider):
         :Example:
             7452
         """
-        pass
+        return ''.join(self.random.choice(string.digits) for _ in range(3))
 
     def paypal(self) -> str:
         """Generates a random PayPal account.
@@ -44,7 +44,7 @@ class Payment(BaseProvider):
         :Example:
             wolf235@gmail.com
         """
-        pass
+        return self._person.email(domains=['paypal.com'])
 
     def bitcoin_address(self) -> str:
         """Generates a random bitcoin address.
@@ -57,7 +57,8 @@ class Payment(BaseProvider):
         :Example:
             3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX
         """
-        pass
+        address = ''.join(self.random.choice(string.ascii_letters + string.digits) for _ in range(33))
+        return f"1{address}"
 
     def ethereum_address(self) -> str:
         """Generates a random Ethereum address.
@@ -70,7 +71,8 @@ class Payment(BaseProvider):
         :Example:
             0xe8ece9e6ff7dba52d4c07d37418036a89af9698d
         """
-        pass
+        address = ''.join(self.random.choice(string.hexdigits.lower()) for _ in range(40))
+        return f"0x{address}"
 
     def credit_card_network(self) -> str:
         """Generates a random credit card network.
@@ -80,7 +82,7 @@ class Payment(BaseProvider):
         :Example:
             MasterCard
         """
-        pass
+        return self.random.choice(list(CREDIT_CARD_NETWORKS.keys()))
 
     def credit_card_number(self, card_type: CardType | None=None) -> str:
         """Generates a random credit card number.
@@ -92,7 +94,11 @@ class Payment(BaseProvider):
         :Example:
             4455 5299 1152 2450
         """
-        pass
+        card_type = self.validate_enum(card_type, CardType)
+        prefix = self.random.choice(CREDIT_CARD_NETWORKS[card_type.value])
+        number = prefix + ''.join(self.random.choice(string.digits) for _ in range(14 - len(prefix)))
+        number += luhn_checksum(number)
+        return ' '.join([number[i:i+4] for i in range(0, 16, 4)])
 
     def credit_card_expiration_date(self, minimum: int=16, maximum: int=25) -> str:
         """Generates a random expiration date for credit card.
@@ -104,7 +110,9 @@ class Payment(BaseProvider):
         :Example:
             03/19.
         """
-        pass
+        month = self.random.randint(1, 12)
+        year = self.random.randint(minimum, maximum)
+        return f"{month:02d}/{year:02d}"
 
     def cvv(self) -> str:
         """Generates a random CVV.
@@ -114,13 +122,21 @@ class Payment(BaseProvider):
         :Example:
             069
         """
-        pass
+        return ''.join(self.random.choice(string.digits) for _ in range(3))
 
     def credit_card_owner(self, gender: Gender | None=None) -> dict[str, str]:
         """Generates a random credit card owner.
 
         :param gender: Gender of the card owner.
         :type gender: Gender enum.
-        :return:
+        :return: Dictionary with credit card owner details.
         """
-        pass
+        gender = self.validate_enum(gender, Gender)
+        return {
+            "full_name": self._person.full_name(gender=gender),
+            "gender": gender.value,
+            "birthday": str(self._person.birthdate()),
+            "credit_card": self.credit_card_number(),
+            "expiration_date": self.credit_card_expiration_date(),
+            "cvv": self.cvv()
+        }
