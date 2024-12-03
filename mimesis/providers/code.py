@@ -20,7 +20,7 @@ class Code(BaseProvider):
 
         :return: Locale code.
         """
-        pass
+        return self.random.choice(LOCALE_CODES)
 
     def issn(self, mask: str='####-####') -> str:
         """Generates a random ISSN.
@@ -28,7 +28,15 @@ class Code(BaseProvider):
         :param mask: Mask of ISSN.
         :return: ISSN.
         """
-        pass
+        issn = self.random.custom_code(mask=mask)
+        check_digit = self._calculate_check_digit(issn)
+        return f"{issn}{check_digit}"
+
+    def _calculate_check_digit(self, issn: str) -> str:
+        """Calculate the check digit for ISSN."""
+        total = sum((8 - i) * int(digit) for i, digit in enumerate(issn.replace('-', '')))
+        check = (11 - (total % 11)) % 11
+        return 'X' if check == 10 else str(check)
 
     def isbn(self, fmt: ISBNFormat | None=None, locale: Locale=Locale.DEFAULT) -> str:
         """Generates ISBN for current locale.
@@ -41,7 +49,22 @@ class Code(BaseProvider):
         :return: ISBN.
         :raises NonEnumerableError: if code is not enum ISBNFormat.
         """
-        pass
+        fmt = self.validate_enum(fmt, ISBNFormat)
+        mask = ISBN_MASKS[fmt.value]
+        
+        if locale in ISBN_GROUPS:
+            isbn = f"{ISBN_GROUPS[locale]}{self.random.custom_code(mask=mask[1:])}"
+        else:
+            isbn = self.random.custom_code(mask=mask)
+        
+        check_digit = self._calculate_isbn_check_digit(isbn)
+        return f"{isbn}{check_digit}"
+
+    def _calculate_isbn_check_digit(self, isbn: str) -> str:
+        """Calculate the check digit for ISBN."""
+        total = sum((10 if x == 'X' else int(x)) * (10 - i) for i, x in enumerate(isbn))
+        check = (11 - (total % 11)) % 11
+        return 'X' if check == 10 else str(check)
 
     def ean(self, fmt: EANFormat | None=None) -> str:
         """Generates EAN.
@@ -53,14 +76,22 @@ class Code(BaseProvider):
         :return: EAN.
         :raises NonEnumerableError: if code is not enum EANFormat.
         """
-        pass
+        fmt = self.validate_enum(fmt, EANFormat)
+        mask = EAN_MASKS[fmt.value]
+        ean = self.random.custom_code(mask=mask[:-1])
+        check_digit = luhn_checksum(ean)
+        return f"{ean}{check_digit}"
 
     def imei(self) -> str:
         """Generates a random IMEI.
 
         :return: IMEI.
         """
-        pass
+        tac = self.random.choice(IMEI_TACS)
+        serial = self.random.custom_code(mask='######')
+        imei = f"{tac}{serial}"
+        check_digit = luhn_checksum(imei)
+        return f"{imei}{check_digit}"
 
     def pin(self, mask: str='####') -> str:
         """Generates a random PIN code.
@@ -68,4 +99,4 @@ class Code(BaseProvider):
         :param mask: Mask of pin code.
         :return: PIN code.
         """
-        pass
+        return self.random.custom_code(mask=mask)
