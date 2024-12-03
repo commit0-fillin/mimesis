@@ -10,9 +10,9 @@ _CacheCallable = Callable[[Locale], Field]
 @pytest.fixture()
 def mimesis_locale() -> Locale:
     """Specifies which locale to use."""
-    pass
+    return Locale.DEFAULT
 
 @pytest.fixture()
 def mimesis(_mimesis_cache: _CacheCallable, mimesis_locale: Locale) -> Field:
     """Mimesis fixture to provide fake data using all built-in providers."""
-    pass
+    return _mimesis_cache(mimesis_locale)
