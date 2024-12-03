@@ -34,7 +34,7 @@ class Path(BaseProvider):
         :Example:
             /
         """
-        pass
+        return str(self._pathlib_home.root)
 
     def home(self) -> str:
         """Generates a home path.
@@ -44,7 +44,7 @@ class Path(BaseProvider):
         :Example:
             /home
         """
-        pass
+        return str(self._pathlib_home)
 
     def user(self) -> str:
         """Generates a random user.
@@ -54,7 +54,7 @@ class Path(BaseProvider):
         :Example:
             /home/oretha
         """
-        pass
+        return str(self._pathlib_home / self.random.choice(USERNAMES))
 
     def users_folder(self) -> str:
         """Generates a random path to user's folders.
@@ -64,7 +64,9 @@ class Path(BaseProvider):
         :Example:
             /home/taneka/Pictures
         """
-        pass
+        user = self.random.choice(USERNAMES)
+        folder = self.random.choice(FOLDERS)
+        return str(self._pathlib_home / user / folder)
 
     def dev_dir(self) -> str:
         """Generates a random path to development directory.
@@ -74,7 +76,9 @@ class Path(BaseProvider):
         :Example:
             /home/sherrell/Development/Python
         """
-        pass
+        user = self.random.choice(USERNAMES)
+        lang = self.random.choice(PROGRAMMING_LANGS)
+        return str(self._pathlib_home / user / 'Development' / lang)
 
     def project_dir(self) -> str:
         """Generates a random path to project directory.
@@ -84,4 +88,7 @@ class Path(BaseProvider):
         :Example:
             /home/sherika/Development/Falcon/mercenary
         """
-        pass
+        user = self.random.choice(USERNAMES)
+        lang = self.random.choice(PROGRAMMING_LANGS)
+        project = self.random.choice(PROJECT_NAMES)
+        return str(self._pathlib_home / user / 'Development' / lang / project)
