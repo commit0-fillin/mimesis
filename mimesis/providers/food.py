@@ -11,7 +11,7 @@ class Food(BaseDataProvider):
 
     def _choice_from(self, key: str) -> str:
         """Choice random element."""
-        pass
+        return self.random.choice(self._dataset[key])
 
     def vegetable(self) -> str:
         """Generates a random vegetable name.
@@ -21,7 +21,7 @@ class Food(BaseDataProvider):
         :Example:
             Tomato.
         """
-        pass
+        return self._choice_from('vegetables')
 
     def fruit(self) -> str:
         """Generates a random fruit or berry name.
@@ -31,7 +31,7 @@ class Food(BaseDataProvider):
         :Example:
             Banana.
         """
-        pass
+        return self._choice_from('fruits')
 
     def dish(self) -> str:
         """Generates a random dish name.
@@ -41,7 +41,7 @@ class Food(BaseDataProvider):
         :Example:
             Ratatouille.
         """
-        pass
+        return self._choice_from('dishes')
 
     def spices(self) -> str:
         """Generates a random spices/herb name.
@@ -51,7 +51,7 @@ class Food(BaseDataProvider):
         :Example:
             Anise.
         """
-        pass
+        return self._choice_from('spices')
 
     def drink(self) -> str:
         """Generates a random drink name.
@@ -61,4 +61,4 @@ class Food(BaseDataProvider):
         :Example:
             Vodka.
         """
-        pass
+        return self._choice_from('drinks')
