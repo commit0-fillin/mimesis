@@ -23,11 +23,22 @@ class NetherlandsSpecProvider(BaseDataProvider):
         :Example:
             255159705
         """
-        pass
+        # Generate 8 random digits
+        digits = [self.random.randint(0, 9) for _ in range(8)]
+        
+        # Calculate the check digit (9th digit)
+        total = sum((9 - i) * digit for i, digit in enumerate(digits))
+        check_digit = (total % 11) % 10
+        
+        # Add the check digit to the list
+        digits.append(check_digit)
+        
+        # Convert the digits to a string
+        return ''.join(map(str, digits))
 
     def burgerservicenummer(self) -> str:
         """Generate a random, but valid ``Burgerservicenummer``.
 
         An alias for self.bsn()
         """
-        pass
+        return self.bsn()
