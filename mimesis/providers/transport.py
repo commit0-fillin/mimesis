@@ -18,7 +18,7 @@ class Transport(BaseProvider):
         :Example:
             Tesla.
         """
-        pass
+        return self.random.choice(AUTO_MANUFACTURERS)
 
     def car(self) -> str:
         """Generates a random vehicle name.
@@ -28,7 +28,7 @@ class Transport(BaseProvider):
         :Example:
             Tesla Model S.
         """
-        pass
+        return self.random.choice(CARS)
 
     def airplane(self) -> str:
         """Generates a random airplane model name.
@@ -38,7 +38,7 @@ class Transport(BaseProvider):
         :Example:
             Boeing 727.
         """
-        pass
+        return self.random.choice(AIRPLANES)
 
     def vehicle_registration_code(self, locale: Locale | None=None) -> str:
         """Returns vehicle registration code.
@@ -46,4 +46,11 @@ class Transport(BaseProvider):
         :param locale: Registration code for locale (country).
         :return: Vehicle registration code.
         """
-        pass
+        if locale is None:
+            locale = self.locale
+
+        code = VRC_BY_LOCALES.get(locale)
+        if code:
+            return self.random.choice(code)
+        
+        return self.random.choice(VR_CODES)
