@@ -50,7 +50,22 @@ class Datetime(BaseDataProvider):
             when ``date_start`` larger than ``date_end`` or when the given
             keywords for `datetime.timedelta` represent a non-positive timedelta.
         """
-        pass
+        if not date_start or not date_end:
+            raise ValueError("Both date_start and date_end must be provided.")
+        if date_start > date_end:
+            raise ValueError("date_start must be earlier than date_end.")
+        
+        step = timedelta(**kwargs)
+        if step <= timedelta(0):
+            raise ValueError("The timedelta step must be positive.")
+        
+        result = []
+        current = date_start
+        while current <= date_end:
+            result.append(current)
+            current += step
+        
+        return result
 
     def week_date(self, start: int=2017, end: int=_CURRENT_YEAR) -> str:
         """Generates week number with year.
@@ -59,7 +74,9 @@ class Datetime(BaseDataProvider):
         :param end: Ending year.
         :return: Week number.
         """
-        pass
+        year = self.random.randint(start, end)
+        week = self.random.randint(1, 52)
+        return f"{year}-W{week:02d}"
 
     def day_of_week(self, abbr: bool=False) -> str:
         """Generates a random day of the week.
@@ -67,7 +84,8 @@ class Datetime(BaseDataProvider):
         :param abbr: Abbreviated day name.
         :return: Day of the week.
         """
-        pass
+        days = self._extract(['day', 'name' if not abbr else 'abbr'])
+        return self.random.choice(days)
 
     def month(self, abbr: bool=False) -> str:
         """Generates a random month of the year.
@@ -75,7 +93,8 @@ class Datetime(BaseDataProvider):
         :param abbr: Abbreviated month name.
         :return: Month name.
         """
-        pass
+        months = self._extract(['month', 'name' if not abbr else 'abbr'])
+        return self.random.choice(months)
 
     def year(self, minimum: int=1990, maximum: int=_CURRENT_YEAR) -> int:
         """Generates a random year.
@@ -84,21 +103,23 @@ class Datetime(BaseDataProvider):
         :param maximum: Maximum value.
         :return: Year.
         """
-        pass
+        return self.random.randint(minimum, maximum)
 
     def century(self) -> str:
         """Generates a random century.
 
         :return: Century.
         """
-        pass
+        centuries = self._extract(['century'])
+        return self.random.choice(centuries)
 
     def periodicity(self) -> str:
         """Generates a random periodicity string.
 
         :return: Periodicity.
         """
-        pass
+        periodicity = self._extract(['periodicity'])
+        return self.random.choice(periodicity)
 
     def date(self, start: int=2000, end: int=_CURRENT_YEAR) -> Date:
         """Generates a random date object.
@@ -107,7 +128,10 @@ class Datetime(BaseDataProvider):
         :param end: Maximum value of year.
         :return: Formatted date.
         """
-        pass
+        year = self.year(start, end)
+        month = self.random.randint(1, 12)
+        day = self.random.randint(1, 28)  # Using 28 to avoid invalid dates
+        return date(year, month, day)
 
     def formatted_date(self, fmt: str='', **kwargs: t.Any) -> str:
         """Generates random date as string.
@@ -117,14 +141,22 @@ class Datetime(BaseDataProvider):
         :param kwargs: Keyword arguments for :meth:`~.date()`
         :return: Formatted date.
         """
-        pass
+        date_obj = self.date(**kwargs)
+        if not fmt:
+            fmt = self._extract(['formats', 'date'])
+        return date_obj.strftime(fmt)
 
     def time(self) -> Time:
         """Generates a random time object.
 
         :return: ``datetime.time`` object.
         """
-        pass
+        return time(
+            self.random.randint(0, 23),
+            self.random.randint(0, 59),
+            self.random.randint(0, 59),
+            self.random.randint(0, 999999)
+        )
 
     def formatted_time(self, fmt: str='') -> str:
         """Generates formatted time as string.
@@ -133,14 +165,17 @@ class Datetime(BaseDataProvider):
             accepted in the current locale.
         :return: String formatted time.
         """
-        pass
+        time_obj = self.time()
+        if not fmt:
+            fmt = self._extract(['formats', 'time'])
+        return time_obj.strftime(fmt)
 
     def day_of_month(self) -> int:
         """Generates a random day of the month, from 1 to 31.
 
         :return: Random value from 1 to 31.
         """
-        pass
+        return self.random.randint(1, 31)
 
     def timezone(self, region: TimezoneRegion | None=None) -> str:
         """Generates a random timezone.
@@ -148,14 +183,19 @@ class Datetime(BaseDataProvider):
         :param region: Timezone region.
         :return: Timezone.
         """
-        pass
+        if region:
+            region = self.validate_enum(region, TimezoneRegion)
+            timezones = TIMEZONES[region.value]
+        else:
+            timezones = [tz for sublist in TIMEZONES.values() for tz in sublist]
+        return self.random.choice(timezones)
 
     def gmt_offset(self) -> str:
         """Generates a random GMT offset value.
 
         :return: GMT Offset.
         """
-        pass
+        return self.random.choice(GMT_OFFSETS)
 
     def datetime(self, start: int=_CURRENT_YEAR, end: int=_CURRENT_YEAR, timezone: str | None=None) -> DateTime:
         """Generates random datetime.
@@ -165,7 +205,18 @@ class Datetime(BaseDataProvider):
         :param timezone: Set custom timezone (pytz required).
         :return: Datetime
         """
-        pass
+        date_obj = self.date(start, end)
+        time_obj = self.time()
+        dt = datetime.combine(date_obj, time_obj)
+        
+        if timezone:
+            try:
+                tz = pytz.timezone(timezone)
+                dt = tz.localize(dt)
+            except pytz.exceptions.UnknownTimeZoneError:
+                raise ValueError(f"Unknown timezone: {timezone}")
+        
+        return dt
 
     def formatted_datetime(self, fmt: str='', **kwargs: t.Any) -> str:
         """Generates datetime string in human-readable format.
@@ -174,7 +225,10 @@ class Datetime(BaseDataProvider):
         :param kwargs: Keyword arguments for :meth:`~.datetime()`
         :return: Formatted datetime string.
         """
-        pass
+        dt = self.datetime(**kwargs)
+        if not fmt:
+            fmt = self._extract(['formats', 'datetime'])
+        return dt.strftime(fmt)
 
     def timestamp(self, fmt: TimestampFormat=TimestampFormat.POSIX, **kwargs: t.Any) -> str | int:
         """Generates a random timestamp in given format.
@@ -201,7 +255,15 @@ class Datetime(BaseDataProvider):
         :param kwargs: Kwargs for :meth:`~.datetime()`.
         :return: Timestamp.
         """
-        pass
+        dt = self.datetime(**kwargs)
+        fmt = self.validate_enum(fmt, TimestampFormat)
+        
+        if fmt == TimestampFormat.POSIX:
+            return int(dt.timestamp())
+        elif fmt == TimestampFormat.RFC_3339:
+            return dt.strftime('%Y-%m-%dT%H:%M:%S')
+        elif fmt == TimestampFormat.ISO_8601:
+            return dt.isoformat()
 
     def duration(self, min_duration: int=1, max_duration: int=10, duration_unit: DurationUnit | None=DurationUnit.MINUTES) -> timedelta:
         """Generate a random duration.
@@ -219,4 +281,22 @@ class Datetime(BaseDataProvider):
         :param duration_unit: Duration unit.
         :return: Duration as timedelta.
         """
-        pass
+        if duration_unit is None:
+            duration_unit = self.random.choice(list(DurationUnit))
+        else:
+            duration_unit = self.validate_enum(duration_unit, DurationUnit)
+        
+        value = self.random.randint(min_duration, max_duration)
+        
+        if duration_unit == DurationUnit.DAYS:
+            return timedelta(days=value)
+        elif duration_unit == DurationUnit.HOURS:
+            return timedelta(hours=value)
+        elif duration_unit == DurationUnit.MINUTES:
+            return timedelta(minutes=value)
+        elif duration_unit == DurationUnit.SECONDS:
+            return timedelta(seconds=value)
+        elif duration_unit == DurationUnit.MILLISECONDS:
+            return timedelta(milliseconds=value)
+        elif duration_unit == DurationUnit.MICROSECONDS:
+            return timedelta(microseconds=value)
