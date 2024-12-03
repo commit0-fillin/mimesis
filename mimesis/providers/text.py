@@ -23,7 +23,10 @@ class Text(BaseDataProvider):
         :param lower_case: Return alphabet in lower case.
         :return: Alphabet.
         """
-        pass
+        alphabet = self._dataset['alphabet']
+        if lower_case:
+            return [letter.lower() for letter in alphabet]
+        return alphabet
 
     def level(self) -> str:
         """Generates a word that indicates a level of something.
@@ -33,7 +36,7 @@ class Text(BaseDataProvider):
         :Example:
             critical.
         """
-        pass
+        return self.random.choice(self._dataset['level'])
 
     def text(self, quantity: int=5) -> str:
         """Generates the text.
@@ -41,21 +44,24 @@ class Text(BaseDataProvider):
         :param quantity: Quantity of sentences.
         :return: Text.
         """
-        pass
+        return ' '.join(self.sentence() for _ in range(quantity))
 
     def sentence(self) -> str:
         """Generates a random sentence from the text.
 
         :return: Sentence.
         """
-        pass
+        words = self.words(quantity=self.random.randint(5, 10))
+        sentence = ' '.join(words).capitalize() + '.'
+        return sentence
 
     def title(self) -> str:
         """Generates a random title.
 
         :return: The title.
         """
-        pass
+        words = self.words(quantity=self.random.randint(2, 5))
+        return ' '.join(word.capitalize() for word in words)
 
     def words(self, quantity: int=5) -> list[str]:
         """Generates a list of random words.
@@ -66,7 +72,8 @@ class Text(BaseDataProvider):
         :Example:
             [science, network, god, octopus, love]
         """
-        pass
+        words = self._dataset['words']
+        return self.random.choices(words, k=quantity)
 
     def word(self) -> str:
         """Generates a random word.
@@ -76,7 +83,7 @@ class Text(BaseDataProvider):
         :Example:
             Science.
         """
-        pass
+        return self.random.choice(self._dataset['words'])
 
     def quote(self) -> str:
         """Generates a random quote.
@@ -86,7 +93,7 @@ class Text(BaseDataProvider):
         :Example:
             "Bond... James Bond."
         """
-        pass
+        return self.random.choice(self._dataset['quotes'])
 
     def color(self) -> str:
         """Generates a random color name.
@@ -96,7 +103,7 @@ class Text(BaseDataProvider):
         :Example:
             Red.
         """
-        pass
+        return self.random.choice(self._dataset['color'])
 
     @staticmethod
     def _hex_to_rgb(color: str) -> tuple[int, ...]:
@@ -105,7 +112,8 @@ class Text(BaseDataProvider):
         :param color: Hex color.
         :return: RGB tuple.
         """
-        pass
+        color = color.lstrip('#')
+        return tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
 
     def hex_color(self, safe: bool=False) -> str:
         """Generates a random HEX color.
@@ -116,7 +124,9 @@ class Text(BaseDataProvider):
         :Example:
             #d8346b
         """
-        pass
+        if safe:
+            return self.random.choice(SAFE_COLORS)
+        return '#{:06x}'.format(self.random.randint(0, 0xFFFFFF))
 
     def rgb_color(self, safe: bool=False) -> tuple[int, ...]:
         """Generates a random RGB color tuple.
@@ -127,7 +137,8 @@ class Text(BaseDataProvider):
         :Example:
             (252, 85, 32)
         """
-        pass
+        hex_color = self.hex_color(safe)
+        return self._hex_to_rgb(hex_color)
 
     def answer(self) -> str:
         """Generates a random answer in the current language.
@@ -137,7 +148,7 @@ class Text(BaseDataProvider):
         :Example:
             No
         """
-        pass
+        return self.random.choice(self._dataset['answers'])
 
     def emoji(self, category: EmojyCategory | None=EmojyCategory.DEFAULT) -> str:
         """Generates a random emoji from the specified category.
@@ -152,4 +163,7 @@ class Text(BaseDataProvider):
         :example:
             😟
         """
-        pass
+        category = self.validate_enum(category, EmojyCategory)
+        if category == EmojyCategory.DEFAULT:
+            return self.random.choice([emoji for emojis in self._emojis.values() for emoji in emojis])
+        return self.random.choice(self._emojis[category.value])
