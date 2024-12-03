@@ -18,7 +18,7 @@ class Hardware(BaseProvider):
         :Example:
             1280x720.
         """
-        pass
+        return self.random.choice(RESOLUTIONS)
 
     def screen_size(self) -> str:
         """Generates a random size of screen in inch.
@@ -28,7 +28,7 @@ class Hardware(BaseProvider):
         :Example:
             13″.
         """
-        pass
+        return self.random.choice(SCREEN_SIZES)
 
     def cpu(self) -> str:
         """Generates a random CPU name.
@@ -38,7 +38,7 @@ class Hardware(BaseProvider):
         :Example:
             Intel® Core i7.
         """
-        pass
+        return self.random.choice(CPU)
 
     def cpu_frequency(self) -> str:
         """Generates a random frequency of CPU.
@@ -48,7 +48,8 @@ class Hardware(BaseProvider):
         :Example:
             4.0 GHz.
         """
-        pass
+        frequency = self.random.uniform(1.5, 4.3)
+        return f"{frequency:.1f} GHz"
 
     def generation(self) -> str:
         """Generates a random generation.
@@ -58,7 +59,7 @@ class Hardware(BaseProvider):
         :Example:
              6th Generation.
         """
-        pass
+        return self.random.choice(GENERATION)
 
     def cpu_codename(self) -> str:
         """Generates a random CPU code name.
@@ -68,7 +69,7 @@ class Hardware(BaseProvider):
         :Example:
             Cannonlake.
         """
-        pass
+        return self.random.choice(CPU_CODENAMES)
 
     def ram_type(self) -> str:
         """Generates a random RAM type.
@@ -78,7 +79,7 @@ class Hardware(BaseProvider):
         :Example:
             DDR3.
         """
-        pass
+        return self.random.choice(RAM_TYPES)
 
     def ram_size(self) -> str:
         """Generates a random size of RAM.
@@ -88,7 +89,7 @@ class Hardware(BaseProvider):
         :Example:
             16GB.
         """
-        pass
+        return self.random.choice(RAM_SIZES)
 
     def ssd_or_hdd(self) -> str:
         """Generates a random type of disk.
@@ -98,7 +99,7 @@ class Hardware(BaseProvider):
         :Example:
             512GB SSD.
         """
-        pass
+        return self.random.choice(HDD_SSD)
 
     def graphics(self) -> str:
         """Generates a random graphics card name.
@@ -108,7 +109,7 @@ class Hardware(BaseProvider):
         :Example:
             Intel® Iris™ Pro Graphics 6200.
         """
-        pass
+        return self.random.choice(GRAPHICS)
 
     def manufacturer(self) -> str:
         """Generates a random manufacturer of hardware.
@@ -118,7 +119,7 @@ class Hardware(BaseProvider):
         :Example:
             Dell.
         """
-        pass
+        return self.random.choice(MANUFACTURERS)
 
     def phone_model(self) -> str:
         """Generates a random phone model.
@@ -128,4 +129,4 @@ class Hardware(BaseProvider):
         :Example:
             Nokia Lumia 920.
         """
-        pass
+        return self.random.choice(PHONE_MODELS)
