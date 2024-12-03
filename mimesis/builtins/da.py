@@ -41,11 +41,22 @@ class DenmarkSpecProvider(BaseDataProvider):
         Note: This method does not handle checksum == 10 case.
               It is handled by recursion in _generate_serial_checksum.
         """
-        pass
+        sum_without_checksum = sum(int(digit) * factor for digit, factor in zip(cpr_nr_no_checksum, self._checksum_factors))
+        checksum = 11 - (sum_without_checksum % 11)
+        
+        if checksum == 11:
+            return 0
+        return checksum
 
     def _generate_serial_checksum(self, cpr_century: str) -> tuple[str, int]:
         """Generate a serial number and checksum from cpr_century."""
-        pass
+        while True:
+            serial_number = ''.join(str(self.random.randint(0, 9)) for _ in range(3))
+            cpr_nr_no_checksum = cpr_century + serial_number
+            checksum = self._calculate_checksum(cpr_nr_no_checksum)
+            
+            if checksum != 10:
+                return serial_number, checksum
 
     def cpr(self) -> str:
         """Generate a random CPR number (Central Person Registry).
@@ -55,4 +66,16 @@ class DenmarkSpecProvider(BaseDataProvider):
         :Example:
             0405420694
         """
-        pass
+        birth_date = self._datetime.date(start=1900, end=2099)
+        day = f"{birth_date.day:02d}"
+        month = f"{birth_date.month:02d}"
+        year = str(birth_date.year)[-2:]
+        
+        cpr_century = day + month + year
+        
+        if birth_date.year >= 2000:
+            cpr_century = day + month + year
+        
+        serial_number, checksum = self._generate_serial_checksum(cpr_century)
+        
+        return f"{cpr_century}{serial_number}{checksum}"
