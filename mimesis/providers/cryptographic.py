@@ -19,14 +19,14 @@ class Cryptographic(BaseProvider):
 
         :return: UUID4 object.
         """
-        pass
+        return uuid4()
 
     def uuid(self) -> str:
         """Generates UUID4 string.
 
         :return: UUID4 as string.
         """
-        pass
+        return str(self.uuid_object())
 
     def hash(self, algorithm: Algorithm | None=None) -> str:
         """Generates random hash.
@@ -41,7 +41,13 @@ class Cryptographic(BaseProvider):
         :return: Hash.
         :raises NonEnumerableError: When algorithm is unsupported.
         """
-        pass
+        if algorithm is None:
+            algorithm = self.random.choice_enum_item(Algorithm)
+        else:
+            algorithm = self.validate_enum(algorithm, Algorithm)
+
+        hash_func = getattr(hashlib, algorithm.value)
+        return hash_func(str(self.random.random()).encode()).hexdigest()
 
     @staticmethod
     def token_bytes(entropy: int=32) -> bytes:
@@ -56,7 +62,7 @@ class Cryptographic(BaseProvider):
         :param entropy: Number of bytes (default: 32).
         :return: Random bytes.
         """
-        pass
+        return secrets.token_bytes(entropy)
 
     @staticmethod
     def token_hex(entropy: int=32) -> str:
@@ -72,7 +78,7 @@ class Cryptographic(BaseProvider):
         :param entropy: Number of bytes (default: 32).
         :return: Token.
         """
-        pass
+        return secrets.token_hex(entropy)
 
     @staticmethod
     def token_urlsafe(entropy: int=32) -> str:
@@ -87,11 +93,11 @@ class Cryptographic(BaseProvider):
         :param entropy: Number of bytes (default: 32).
         :return: URL-safe token.
         """
-        pass
+        return secrets.token_urlsafe(entropy)
 
     def mnemonic_phrase(self) -> str:
         """Generates BIP-39 looking mnemonic phrase.
 
         :return: Mnemonic phrase.
         """
-        pass
+        return ' '.join(self.random.choices(WORDLIST, k=12))
