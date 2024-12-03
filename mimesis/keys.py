@@ -22,7 +22,13 @@ def romanize(locale: Locale) -> Callable[[str], str]:
     :param locale: Locale.
     :return: A closure that takes a string and returns a romanized string.
     """
-    pass
+    validate_locale(locale)
+    
+    def _romanize(text: str) -> str:
+        romanization_map = ROMANIZATION_DICT.get(locale, {})
+        return ''.join(romanization_map.get(char, char) for char in text)
+    
+    return _romanize
 
 def maybe(value: Any, probability: float=0.5) -> Callable[[Any, Random], Any]:
     """Return a closure (a key function).
@@ -34,4 +40,7 @@ def maybe(value: Any, probability: float=0.5) -> Callable[[Any, Random], Any]:
     :param probability: The probability of returning **value**.
     :return: A closure that takes two arguments.
     """
-    pass
+    def _maybe(arg: Any, random: Random) -> Any:
+        return value if random.random() < probability else arg
+    
+    return _maybe
