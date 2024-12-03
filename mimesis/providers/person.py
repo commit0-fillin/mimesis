@@ -33,7 +33,10 @@ class Person(BaseDataProvider):
         :param max_year: Minimum birth year.
         :return: Random date object.
         """
-        pass
+        year = self.random.randint(min_year, max_year)
+        month = self.random.randint(1, 12)
+        day = self.random.randint(1, 28)  # Using 28 to avoid invalid dates
+        return date(year, month, day)
 
     def name(self, gender: Gender | None=None) -> str:
         """Generates a random name.
@@ -44,7 +47,9 @@ class Person(BaseDataProvider):
         :Example:
             John.
         """
-        pass
+        gender = self.validate_enum(gender, Gender)
+        names = self._dataset['names']
+        return self.random.choice(names[gender.value])
 
     def first_name(self, gender: Gender | None=None) -> str:
         """Generates a random first name.
@@ -54,7 +59,7 @@ class Person(BaseDataProvider):
         :param gender: Gender's enum object.
         :return: First name.
         """
-        pass
+        return self.name(gender)
 
     def surname(self, gender: Gender | None=None) -> str:
         """Generates a random surname.
@@ -65,7 +70,11 @@ class Person(BaseDataProvider):
         :Example:
             Smith.
         """
-        pass
+        gender = self.validate_enum(gender, Gender)
+        surnames = self._dataset['surnames']
+        if isinstance(surnames, dict) and gender.value in surnames:
+            return self.random.choice(surnames[gender.value])
+        return self.random.choice(surnames)
 
     def last_name(self, gender: Gender | None=None) -> str:
         """Generates a random last name.
@@ -75,7 +84,7 @@ class Person(BaseDataProvider):
         :param gender: Gender's enum object.
         :return: Last name.
         """
-        pass
+        return self.surname(gender)
 
     def title(self, gender: Gender | None=None, title_type: TitleType | None=None) -> str:
         """Generates a random title for name.
@@ -91,7 +100,16 @@ class Person(BaseDataProvider):
         :Example:
             PhD.
         """
-        pass
+        gender = self.validate_enum(gender, Gender)
+        title_type = self.validate_enum(title_type, TitleType)
+        
+        titles = self._dataset['titles']
+        if title_type == TitleType.ACADEMIC:
+            return self.random.choice(titles['academic'])
+        elif title_type == TitleType.SOCIAL:
+            return self.random.choice(titles['social'][gender.value])
+        else:
+            return self.random.choice(titles['religious'])
 
     def full_name(self, gender: Gender | None=None, reverse: bool=False) -> str:
         """Generates a random full name.
@@ -103,7 +121,10 @@ class Person(BaseDataProvider):
         :Example:
             Johann Wolfgang.
         """
-        pass
+        gender = self.validate_enum(gender, Gender)
+        if reverse:
+            return f"{self.surname(gender)} {self.name(gender)}"
+        return f"{self.name(gender)} {self.surname(gender)}"
 
     def username(self, mask: str | None=None, drange: tuple[int, int]=(1800, 2100)) -> str:
         """Generates a username by mask.
@@ -131,7 +152,25 @@ class Person(BaseDataProvider):
             >>> username(mask='l_l_d', drange=(1900, 2021))
             plasmic_blockader_1907
         """
-        pass
+        if mask is None:
+            mask = self.random.choice(['C.l', 'C_l', 'C-l', 'U.l', 'U_l', 'U-l'])
+
+        username = ''
+        for char in mask:
+            if char in 'CUl':
+                word = self.random.choice(USERNAMES)
+                if char == 'C':
+                    username += word.capitalize()
+                elif char == 'U':
+                    username += word.upper()
+                else:
+                    username += word.lower()
+            elif char == 'd':
+                username += str(self.random.randint(drange[0], drange[1]))
+            else:
+                username += char
+
+        return username
 
     def password(self, length: int=8, hashed: bool=False) -> str:
         """Generates a password or hash of password.
@@ -143,7 +182,12 @@ class Person(BaseDataProvider):
         :Example:
             k6dv2odff9#4h
         """
-        pass
+        characters = ascii_letters + digits + punctuation
+        password = ''.join(self.random.choice(characters) for _ in range(length))
+        
+        if hashed:
+            return hashlib.sha256(password.encode()).hexdigest()
+        return password
 
     def email(self, domains: t.Sequence[str] | None=None, unique: bool=False) -> str:
         """Generates a random email.
@@ -156,7 +200,18 @@ class Person(BaseDataProvider):
         :Example:
             foretime10@live.com
         """
-        pass
+        if unique and self._has_seed():
+            raise ValueError('You cannot use «unique» parameter with the seeded provider')
+
+        if domains is None:
+            domains = EMAIL_DOMAINS
+
+        domain = self.random.choice(domains)
+        name = self.username(mask='l').lower()
+        
+        if unique:
+            return f'{name}{uuid.uuid4().hex[:8]}@{domain}'
+        return f'{name}@{domain}'
 
     def gender_symbol(self) -> str:
         """Generate a random sex symbol.
@@ -164,7 +219,7 @@ class Person(BaseDataProvider):
         :Example:
             ♂
         """
-        pass
+        return self.random.choice(GENDER_SYMBOLS)
 
     def gender_code(self) -> int:
         """Generate a random ISO/IEC 5218 gender code.
@@ -179,7 +234,7 @@ class Person(BaseDataProvider):
 
         :return:
         """
-        pass
+        return self.random.choice(GENDER_CODES)
 
     def gender(self) -> str:
         """Generates a random gender title.
@@ -187,14 +242,14 @@ class Person(BaseDataProvider):
         :Example:
             Male
         """
-        pass
+        return self.random.choice(self._dataset['gender'])
 
     def sex(self) -> str:
         """An alias for method :meth:`~.gender`.
 
         :return: Sex.
         """
-        pass
+        return self.gender()
 
     def height(self, minimum: float=1.5, maximum: float=2.0) -> str:
         """Generates a random height in meters.
@@ -206,7 +261,8 @@ class Person(BaseDataProvider):
         :Example:
             1.85.
         """
-        pass
+        h = self.random.uniform(minimum, maximum)
+        return f"{h:.2f}"
 
     def weight(self, minimum: int=38, maximum: int=90) -> int:
         """Generates a random weight in Kg.
@@ -218,7 +274,7 @@ class Person(BaseDataProvider):
         :Example:
             48.
         """
-        pass
+        return self.random.randint(minimum, maximum)
 
     def blood_type(self) -> str:
         """Generates a random blood type.
@@ -228,7 +284,7 @@ class Person(BaseDataProvider):
         :Example:
             A+
         """
-        pass
+        return self.random.choice(BLOOD_GROUPS)
 
     def occupation(self) -> str:
         """Generates a random job.
@@ -238,7 +294,7 @@ class Person(BaseDataProvider):
         :Example:
             Programmer.
         """
-        pass
+        return self.random.choice(self._dataset['occupation'])
 
     def political_views(self) -> str:
         """Get a random political views.
@@ -248,7 +304,7 @@ class Person(BaseDataProvider):
         :Example:
             Liberal.
         """
-        pass
+        return self.random.choice(self._dataset['political_views'])
 
     def worldview(self) -> str:
         """Generates a random worldview.
@@ -258,7 +314,7 @@ class Person(BaseDataProvider):
         :Example:
             Pantheism.
         """
-        pass
+        return self.random.choice(self._dataset['worldview'])
 
     def views_on(self) -> str:
         """Get a random views on.
@@ -268,7 +324,7 @@ class Person(BaseDataProvider):
         :Example:
             Negative.
         """
-        pass
+        return self.random.choice(self._dataset['views_on'])
 
     def nationality(self, gender: Gender | None=None) -> str:
         """Generates a random nationality.
@@ -279,7 +335,12 @@ class Person(BaseDataProvider):
         :Example:
             Russian
         """
-        pass
+        gender = self.validate_enum(gender, Gender)
+        nationalities = self._dataset['nationality']
+        
+        if isinstance(nationalities, dict) and gender.value in nationalities:
+            return self.random.choice(nationalities[gender.value])
+        return self.random.choice(nationalities)
 
     def university(self) -> str:
         """Generates a random university name.
@@ -289,7 +350,7 @@ class Person(BaseDataProvider):
         :Example:
             MIT.
         """
-        pass
+        return self.random.choice(self._dataset['university'])
 
     def academic_degree(self) -> str:
         """Generates a random academic degree.
@@ -299,7 +360,7 @@ class Person(BaseDataProvider):
         :Example:
             Bachelor.
         """
-        pass
+        return self.random.choice(self._dataset['academic_degree'])
 
     def language(self) -> str:
         """Generates a random language name.
@@ -309,7 +370,7 @@ class Person(BaseDataProvider):
         :Example:
             Irish.
         """
-        pass
+        return self.random.choice(self._dataset['language'])
 
     def phone_number(self, mask: str='', placeholder: str='#') -> str:
         """Generates a random phone number.
@@ -321,11 +382,14 @@ class Person(BaseDataProvider):
         :Example:
             +7-(963)-409-11-22.
         """
-        pass
+        if not mask:
+            mask = self.random.choice(CALLING_CODES) + '-###-###-####'
+        
+        return ''.join(self.random.choice(digits) if char == placeholder else char for char in mask)
 
     def telephone(self, *args: t.Any, **kwargs: t.Any) -> str:
         """An alias for :meth:`~.phone_number`."""
-        pass
+        return self.phone_number(*args, **kwargs)
 
     def identifier(self, mask: str='##-##/##') -> str:
         """Generates a random identifier by mask.
@@ -341,4 +405,6 @@ class Person(BaseDataProvider):
         :Example:
             07-97/04
         """
-        pass
+        return ''.join(self.random.choice(ascii_letters) if char == '@' else
+                       self.random.choice(digits) if char == '#' else char
+                       for char in mask)
