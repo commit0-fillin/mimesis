@@ -64,7 +64,10 @@ class Generic(BaseProvider):
         :param seed: Seed for random.
         :return: None.
         """
-        pass
+        super().reseed(seed)
+        for attr_name, attr_value in self.__dict__.items():
+            if isinstance(attr_value, BaseProvider):
+                attr_value.reseed(seed)
 
     def add_provider(self, cls: t.Type[BaseProvider], **kwargs: t.Any) -> None:
         """Adds a custom provider to a Generic() object.
@@ -75,7 +78,16 @@ class Generic(BaseProvider):
             class or is not a subclass of BaseProvider.
         :return: Absolutely none.
         """
-        pass
+        if not inspect.isclass(cls):
+            raise TypeError('The provider must be a class')
+        if not issubclass(cls, BaseProvider):
+            raise TypeError('The provider must be a subclass of BaseProvider')
+        if cls is Generic:
+            raise TypeError('Cannot add Generic to itself')
+
+        name = getattr(cls.Meta, 'name', cls.__name__.lower())
+        provider = cls(seed=self.seed, **kwargs)
+        setattr(self, name, provider)
 
     def add_providers(self, *providers: t.Type[BaseProvider]) -> None:
         """Adds multiple custom providers to a Generic() object.
@@ -99,7 +111,8 @@ class Generic(BaseProvider):
         :param providers: Custom providers.
         :return: None
         """
-        pass
+        for provider in providers:
+            self.add_provider(provider)
 
     def __iadd__(self, other: t.Type[BaseProvider]) -> 'Generic':
         """Adds a custom provider to a Generic() object.
